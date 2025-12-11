@@ -12,10 +12,12 @@ data "aws_availability_zones" "azs" {}
 # Create a stable map of public subnets so we can index AZs reliably
 locals {
   subnet_map = { for idx, cidr in var.public_subnets : tostring(idx) => cidr }
+  vpc_id     = var.existing_vpc_id != "" ? var.existing_vpc_id : (length(aws_vpc.main) > 0 ? aws_vpc.main[0].id : "")
 }
 
 # VPC
 resource "aws_vpc" "main" {
+  count                = var.existing_vpc_id == "" ? 1 : 0
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -26,7 +28,7 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "public" {
   for_each = local.subnet_map
 
-  vpc_id                  = aws_vpc.main.id
+  vpc_id                  = local.vpc_id
   cidr_block              = each.value
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.azs.names[tonumber(each.key) % length(data.aws_availability_zones.azs.names)]
@@ -35,30 +37,32 @@ resource "aws_subnet" "public" {
 
 # Internet Gateway
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
+  count = var.existing_vpc_id == "" ? 1 : 0
+  vpc_id = local.vpc_id
 }
 
 # Route Table
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
+  count  = var.existing_vpc_id == "" ? 1 : 0
+  vpc_id = local.vpc_id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
+    gateway_id = aws_internet_gateway.igw[0].id
   }
 }
 
 # Associations
 resource "aws_route_table_association" "public_assoc" {
-  for_each       = aws_subnet.public
+  for_each       = length(aws_route_table.public) > 0 ? aws_subnet.public : {}
   subnet_id      = each.value.id
-  route_table_id = aws_route_table.public.id
+  route_table_id = aws_route_table.public[0].id
 }
 
 # Security Group
 resource "aws_security_group" "web_sg" {
   name   = "web-sg"
-  vpc_id = aws_vpc.main.id
+  vpc_id = local.vpc_id
 
   ingress {
     from_port   = 80
@@ -129,7 +133,7 @@ resource "aws_lb_target_group" "tg" {
   name     = "lab-tg"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  vpc_id   = local.vpc_id
 
   health_check {
     path = "/"
