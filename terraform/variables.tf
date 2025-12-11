@@ -44,3 +44,9 @@ variable "ssh_public_key" {
   default     = ""
   description = "(Opcional) Clave pública SSH. Si se provee, Terraform creará un key pair con el nombre `ssh_key_name` usando esta clave pública."
 }
+
+variable "existing_vpc_id" {
+  type        = string
+  default     = ""
+  description = "(Opcional) Si se proporciona, Terraform usará este VPC en lugar de crear uno nuevo."
+}
