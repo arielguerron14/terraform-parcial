@@ -2,15 +2,9 @@ provider "aws" {
   region = var.region
 }
 
-# AMI oficial Amazon Linux 2023 (sin IAM)
-data "aws_ami" "al2023" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
+# Use specified AMI ID instead of searching
+locals {
+  ami_id = "ami-0c19292331f6e3a5c"
 }
 
 data "aws_availability_zones" "azs" {}
@@ -100,7 +94,7 @@ EOF
 # Launch Template sin IAM
 resource "aws_launch_template" "lt" {
   name_prefix   = "lab-lt-"
-  image_id      = data.aws_ami.al2023.id
+  image_id      = local.ami_id
   instance_type = var.instance_type
 
   key_name = var.ssh_key_name != "" ? var.ssh_key_name : null
