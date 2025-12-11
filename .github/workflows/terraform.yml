@@ -28,6 +28,13 @@ jobs:
         echo "\nListing repo root:" && ls -la
         echo "\nListing 'terraform' directory:" && ls -la terraform || true
 
+    - name: Debug - print Terraform files
+      run: |
+        echo "---- terraform/variables.tf ----"
+        if [ -f terraform/variables.tf ]; then sed -n '1,200p' terraform/variables.tf; else echo "variables.tf not found"; fi
+        echo "\n---- terraform/main.tf (first 200 lines) ----"
+        if [ -f terraform/main.tf ]; then sed -n '1,200p' terraform/main.tf; else echo "main.tf not found"; fi
+
     - name: Init
       working-directory: terraform
       run: terraform init
