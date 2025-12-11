@@ -1,4 +1,4 @@
-name: Terraform Deploy
+name: TERRAFORM Deploy
 
 
 on:
@@ -24,13 +24,13 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Init
-      working-directory: terraform
+      working-directory: TERRAFORM
       run: terraform init
 
     - name: Plan
-      working-directory: terraform
+      working-directory: TERRAFORM
       run: terraform plan -out=tfplan
 
     - name: Apply
-      working-directory: terraform
+      working-directory: TERRAFORM
       run: terraform apply -auto-approve tfplan
