@@ -35,6 +35,6 @@ variable "asg_desired" {
 
 variable "ssh_key_name" {
   type        = string
-  default     = ""
-  description = "Nombre de key pair existente, dejar vacío si no usarás SSH."
+  default     = "recuperacion"
+  description = "Nombre de key pair para acceso SSH a las instancias EC2."
 }
