@@ -9,6 +9,11 @@ locals {
 
 data "aws_availability_zones" "azs" {}
 
+# Create a stable map of public subnets so we can index AZs reliably
+locals {
+  subnet_map = { for idx, cidr in var.public_subnets : tostring(idx) => cidr }
+}
+
 # VPC
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
@@ -19,12 +24,12 @@ resource "aws_vpc" "main" {
 
 # Subnets
 resource "aws_subnet" "public" {
-  for_each = toset(var.public_subnets)
+  for_each = local.subnet_map
 
   vpc_id                  = aws_vpc.main.id
   cidr_block              = each.value
   map_public_ip_on_launch = true
-  availability_zone       = data.aws_availability_zones.azs.names[tonumber(index(keys(toset(var.public_subnets)), each.key)) % length(data.aws_availability_zones.azs.names)]
+  availability_zone       = data.aws_availability_zones.azs.names[tonumber(each.key) % length(data.aws_availability_zones.azs.names)]
   tags = { Name = "public-${each.value}" }
 }
 
