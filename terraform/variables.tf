@@ -1,0 +1,40 @@
+variable "region" {
+  type    = string
+  default = "us-east-1"
+}
+
+variable "vpc_cidr" {
+  type    = string
+  default = "10.0.0.0/16"
+}
+
+variable "public_subnets" {
+  type    = list(string)
+  default = ["10.0.1.0/24", "10.0.2.0/24"]
+}
+
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}
+
+variable "asg_min" {
+  type    = number
+  default = 2
+}
+
+variable "asg_max" {
+  type    = number
+  default = 6
+}
+
+variable "asg_desired" {
+  type    = number
+  default = 6
+}
+
+variable "ssh_key_name" {
+  type        = string
+  default     = ""
+  description = "Nombre de key pair existente, dejar vacío si no usarás SSH."
+}
