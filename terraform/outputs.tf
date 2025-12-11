@@ -1,10 +1,8 @@
-output "security_group_id" {
-  value       = aws_security_group.web_sg.id
-  description = "Security Group ID for web traffic. Use this SG when launching EC2 instances."
+output "alb_dns" {
+  value = aws_lb.alb.dns_name
 }
 
-output "security_group_name" {
-  value       = aws_security_group.web_sg.name
-  description = "Security Group name"
+output "asg_name" {
+  value = aws_autoscaling_group.asg.name
 }
 

@@ -36,5 +36,11 @@ variable "asg_desired" {
 variable "ssh_key_name" {
   type        = string
   default     = "recuperacion"
-  description = "Nombre de key pair para acceso SSH a las instancias EC2."
+  description = "Nombre de key pair para acceso SSH a las instancias EC2. Si se crea a partir de 'ssh_public_key', se usará este nombre."
+}
+
+variable "ssh_public_key" {
+  type        = string
+  default     = ""
+  description = "(Opcional) Clave pública SSH. Si se provee, Terraform creará un key pair con el nombre `ssh_key_name` usando esta clave pública."
 }
