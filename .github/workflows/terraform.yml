@@ -22,6 +22,12 @@ jobs:
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ secrets.AWS_REGION }}
 
+    - name: Debug - show repository and terraform folder
+      run: |
+        echo "Current directory:" && pwd
+        echo "\nListing repo root:" && ls -la
+        echo "\nListing 'terraform' directory:" && ls -la terraform || true
+
     - name: Init
       working-directory: terraform
       run: terraform init
