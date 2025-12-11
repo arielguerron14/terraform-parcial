@@ -25,12 +25,14 @@ resource "aws_vpc" "main" {
 
 # Subnets
 resource "aws_subnet" "public" {
-  for_each = toset(var.public_subnets)
+  # Use a map with indexes so we can assign different AZs to each subnet
+  for_each = { for idx, cidr in var.public_subnets : tostring(idx) => cidr }
 
   vpc_id                  = aws_vpc.main.id
   cidr_block              = each.value
   map_public_ip_on_launch = true
-  availability_zone       = data.aws_availability_zones.azs.names[0]
+  # Assign one AZ per subnet using the index key
+  availability_zone       = data.aws_availability_zones.azs.names[tonumber(each.key)]
   tags = { Name = "public-${each.value}" }
 }
 
