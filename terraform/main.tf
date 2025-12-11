@@ -5,9 +5,9 @@ provider "aws" {
 # Use specified AMI ID instead of searching
 locals {
   ami_id = "ami-0c19292331f6e3a5c"
+  # Hardcoded AZs for us-east-1 to avoid permission errors with DescribeAvailabilityZones
+  availability_zones = ["us-east-1a", "us-east-1b"]
 }
-
-data "aws_availability_zones" "azs" {}
 
 # VPC
 resource "aws_vpc" "main" {
@@ -26,7 +26,7 @@ resource "aws_subnet" "public" {
   cidr_block              = each.value
   map_public_ip_on_launch = true
   # Assign one AZ per subnet using the index key
-  availability_zone       = data.aws_availability_zones.azs.names[tonumber(each.key)]
+  availability_zone       = local.availability_zones[tonumber(each.key)]
   tags = { Name = "public-${each.value}" }
 }
 
