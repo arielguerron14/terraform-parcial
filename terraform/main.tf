@@ -2,12 +2,22 @@ provider "aws" {
   region = var.region
 }
 
-# Use specified AMI ID
-locals {
-  ami_id = "ami-0c19292331f6e3a5c"
+# AMI oficial Amazon Linux 2023 (opcional: se usa si var.ami_id no está especificada)
+data "aws_ami" "al2023" {
+  count       = var.ami_id == "" ? 1 : 0
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
 }
 
-data "aws_availability_zones" "azs" {}
+# AZ lookup opcional (usar var.azs si se pasa desde CI)
+data "aws_availability_zones" "azs" {
+  count = length(var.azs) == 0 ? 1 : 0
+}
 
 # Create a stable map of public subnets so we can index AZs reliably
 locals {
@@ -31,7 +41,7 @@ resource "aws_subnet" "public" {
   vpc_id                  = local.vpc_id
   cidr_block              = each.value
   map_public_ip_on_launch = true
-  availability_zone       = data.aws_availability_zones.azs.names[tonumber(each.key) % length(data.aws_availability_zones.azs.names)]
+  availability_zone       = length(var.azs) > 0 ? var.azs[tonumber(each.key) % length(var.azs)] : data.aws_availability_zones.azs.names[tonumber(each.key) % length(data.aws_availability_zones.azs.names)]
   tags = { Name = "public-${each.value}" }
 }
 
@@ -108,7 +118,7 @@ resource "aws_key_pair" "default" {
 # Launch Template
 resource "aws_launch_template" "lt" {
   name_prefix   = "lab-lt-"
-  image_id      = local.ami_id
+  image_id      = var.ami_id != "" ? var.ami_id : data.aws_ami.al2023[0].id
   instance_type = var.instance_type
 
   key_name = var.ssh_key_name != "" ? var.ssh_key_name : null
